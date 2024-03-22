@@ -5,7 +5,6 @@ import re
 
 import torch
 
-
 MAX_VOCAB_SIZE = 12000
 
 
@@ -13,7 +12,7 @@ np.random.seed(1234)
 torch.manual_seed(1234)
 
 
-def load_data(path: Path, encoding: str = "utf-8"):
+def load_data(path: Path, encoding: str = "utf-8") -> tuple[np.ndarray, np.ndarray]:
 
     path = Path(path)
     text = path.read_text(encoding=encoding)
@@ -27,8 +26,7 @@ def load_data(path: Path, encoding: str = "utf-8"):
     return context, target
 
 
-# TODO: Check if it is correct
-def clean_data(data: np.ndarray):
+def clean_data(data: np.ndarray) -> np.ndarray:
 
     normalize_fn = lambda x: unicodedata.normalize("NFKD", x)
     v_normalize_fn = np.vectorize(normalize_fn)
@@ -45,7 +43,7 @@ def clean_data(data: np.ndarray):
     regex_2_fn = lambda x: re.sub("[.?!,¿]", r" \g<0> ", x)
     v_regex_2_fn = np.vectorize(regex_2_fn)
 
-    surround_fn = lambda x: f"[SOS] {x} [EOS]"
+    surround_fn = lambda x: f"[SOS] {x.strip()} [EOS]"
     v_surround_fn = np.vectorize(surround_fn)
 
     clean_data = v_normalize_fn(data)
@@ -79,8 +77,8 @@ def make_maps(data):
 
     itos = {v: k for k, v in stoi.items()}
 
-    stoi = dict(list(stoi.items())[:MAX_VOCAB_SIZE])
-    itos = dict(list(itos.items())[:MAX_VOCAB_SIZE])
+    # stoi = dict(list(stoi.items())[:MAX_VOCAB_SIZE])
+    # itos = dict(list(itos.items())[:MAX_VOCAB_SIZE])
 
     return stoi, itos
 

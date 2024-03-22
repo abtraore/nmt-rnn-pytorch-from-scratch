@@ -16,6 +16,9 @@ class EnToPorDataset(Dataset):
         self.por_stoi, self.por_itos = make_maps(self.por_data)
         self.en_stoi, self.en_itos = make_maps(self.en_data)
 
+        self.en_vocab_size = len(self.en_stoi.keys())
+        self.por_vocab_size = len(self.por_stoi.keys())
+
         self.por_encoder, self.por_decoder = get_encoder_decoder(
             self.por_stoi, self.por_itos
         )
@@ -32,6 +35,8 @@ class EnToPorDataset(Dataset):
     def __getitem__(self, index):
 
         context = self.en_data[index]
+
+        # Teacher forcing
         target_in = self.por_data[index][:-1]
         target_out = self.por_data[index][1:]
 
