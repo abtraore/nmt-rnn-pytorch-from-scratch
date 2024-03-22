@@ -93,11 +93,3 @@ class Translator(nn.Module):
 
         x = self.decoder(x, target)
         return x
-
-
-# fake_context = torch.ones((64, 14)).int()
-# fake_target = torch.ones((64, 15)).int()
-
-# model = Translator(256, 12000)
-
-# out = model(fake_context, fake_target)
