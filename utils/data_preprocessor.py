@@ -8,10 +8,9 @@ import torch
 
 MAX_VOCAB_SIZE = 12000
 
+
 np.random.seed(1234)
 torch.manual_seed(1234)
-
-PATH = "data/por-eng/por.txt"
 
 
 def load_data(path: Path, encoding: str = "utf-8"):
@@ -22,8 +21,8 @@ def load_data(path: Path, encoding: str = "utf-8"):
     lines = text.splitlines()
     pairs = [line.split("\t") for line in lines]
 
-    context = np.array([context for _, context, _ in pairs])
-    target = np.array([target for target, _, _ in pairs])
+    context = clean_data(np.array([context for _, context, _ in pairs]))
+    target = clean_data(np.array([target for target, _, _ in pairs]))
 
     return context, target
 
@@ -62,8 +61,9 @@ def clean_data(data: np.ndarray):
 def make_maps(data):
 
     stoi = {}
-    stoi["[SOS]"] = 0
-    stoi["[EOS]"] = 1
+    stoi[""] = 0
+    stoi["[SOS]"] = 1
+    stoi["[EOS]"] = 2
     stoi["[UNK]"] = 3
     stoi[" "] = 4
 
@@ -85,9 +85,43 @@ def make_maps(data):
     return stoi, itos
 
 
+def try_dict(dic, x, is_stoi=True):
+    try:
+        return dic[x]
+    except:
+        if is_stoi:
+            return 3
+        else:
+            return "[UNK]"
+
+
 def get_encoder_decoder(stoi, itos):
 
-    encoder = lambda x: stoi[x]
-    decoder = lambda x: itos[x]
+    encoder = lambda x: try_dict(stoi, x)
+    decoder = lambda x: try_dict(itos, x, False)
 
     return encoder, decoder
+
+
+# por, en = load_data(PATH)
+
+# print(len(por))
+# print(len(en))
+
+# c_data = clean_data(en)
+# stoi, itos = make_maps(c_data)
+
+# c_data_por = clean_data(por)
+# stoi_p, itos_p = make_maps(c_data_por)
+
+
+# encoder, decoder = get_encoder_decoder(stoi, itos)
+
+
+# print(len(stoi))
+# print(len(stoi_p))
+
+# print(c_data[0].split())
+# enc = list(map(encoder, c_data[0].split()))
+# print(enc)
+# print(list(map(decoder, enc)))
