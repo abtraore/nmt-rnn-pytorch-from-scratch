@@ -1,10 +1,9 @@
 import torch
-import torch.nn as nn
 
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
 
-from data_preprocessor import load_data, make_maps, get_encoder_decoder
+from .data_preprocessor import load_data, make_maps, get_encoder_decoder
 
 
 class EnToPorDataset(Dataset):
@@ -32,10 +31,11 @@ class EnToPorDataset(Dataset):
 
     def __getitem__(self, index):
 
-        context = torch.tensor(list(map(self.en_encoder, self.en_data[index].split())))
-        target = torch.tensor(list(map(self.por_encoder, self.por_data[index].split())))
+        context = self.en_data[index]
+        target_in = self.por_data[index][:-1]
+        target_out = self.por_data[index][1:]
 
-        return context, target
+        return context, target_in, target_out
 
     def get_max_lengh(self):
         data_list = []
@@ -47,6 +47,9 @@ class EnToPorDataset(Dataset):
                 max_length_context = len(context)
 
         self.en_data = pad_sequence(data_list)
+        self.en_data = torch.permute(self.en_data, (1, 0))
+
+        self.en_data_length = max_length_context
 
         data_list = []
         max_length_context = float("-inf")
@@ -59,6 +62,5 @@ class EnToPorDataset(Dataset):
                 max_length_context = len(context)
 
         self.por_data = pad_sequence(data_list)
-
-
-dt = EnToPorDataset("data/por-eng/por.txt")
+        self.por_data = torch.permute(self.por_data, (1, 0))
+        self.por_data_length = max_length_context

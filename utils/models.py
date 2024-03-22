@@ -26,7 +26,7 @@ class Encoder(nn.Module):
         h_n = torch.sum(h_n, dim=0)
         c_n = torch.sum(c_n, dim=0)
 
-        return output, h_n, c_n
+        return output, (h_n, c_n)
 
 
 class CrossAttention(nn.Module):
@@ -42,8 +42,6 @@ class CrossAttention(nn.Module):
         output = att_output + target
         output = self.layerNorm(output)
 
-        print(att_output.shape)
-
         return output
 
 
@@ -57,20 +55,24 @@ class Decoder(nn.Module):
         self.preLSTM = nn.LSTM(units, units, batch_first=True)
         self.cross_attention = CrossAttention()
         self.postLSTM = nn.LSTM(units, units, batch_first=True)
-        self.linear = nn.Linear(3840, vocab_size)
+        self.linear = nn.Linear(256, vocab_size)
         self.logSoftmax = nn.LogSoftmax(dim=-1)
 
-    def forward(self, context, target, state=None, return_state=False):
+    def forward(
+        self, context, target, h_0=None, c_0=None, train=True, return_state=False
+    ):
 
         x = self.embedding(target)
 
-        x, (h_n, c_n) = self.preLSTM(x)
+        if train == False:
+            x, (h_n, c_n) = self.preLSTM(x, (h_0, c_0))
+        else:
+            x, (h_n, c_n) = self.preLSTM(x)
 
         attention_output = self.cross_attention(context, x)
 
         x, _ = self.postLSTM(attention_output)
 
-        x = torch.flatten(x, 1)
         x = self.linear(x)
         logits = self.logSoftmax(x)
 
@@ -80,15 +82,22 @@ class Decoder(nn.Module):
         return logits
 
 
-fake_context = torch.ones((64, 14)).int()
-fake_target = torch.ones((64, 15)).int()
+class Translator(nn.Module):
+    def __init__(self, units, vocab_size):
+        super().__init__()
+        self.encoder = Encoder(units=units, vocab_size=vocab_size)
+        self.decoder = Decoder(units=units, vocab_size=vocab_size)
 
-emb = nn.Embedding(64, 256)
+    def forward(self, context, target):
+        x, (h_enc, c_enc) = self.encoder(context)
 
-enc = Encoder(256, 12000)
-dec = Decoder(256, 12000)
-ca = CrossAttention()
+        x = self.decoder(x, target)
+        return x
 
-out, h_n, c_n = enc(fake_context)
 
-dec(out, fake_target)
+# fake_context = torch.ones((64, 14)).int()
+# fake_target = torch.ones((64, 15)).int()
+
+# model = Translator(256, 12000)
+
+# out = model(fake_context, fake_target)
