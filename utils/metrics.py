@@ -26,3 +26,14 @@ def mask_acc(y_pred, y_true):
     acc = torch.sum(acc) / torch.sum(mask_true)
 
     return acc
+
+
+def jaccard_similarity(candidate, reference):
+
+    candidate = set(candidate)
+    reference = set(reference)
+
+    inter = candidate.intersection(reference)
+    union = candidate.union(reference)
+
+    return len(inter) / len(union)

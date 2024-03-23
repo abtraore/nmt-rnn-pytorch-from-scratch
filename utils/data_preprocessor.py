@@ -8,8 +8,8 @@ import torch
 MAX_VOCAB_SIZE = 12000
 
 
-np.random.seed(1234)
-torch.manual_seed(1234)
+# np.random.seed(1234)
+# torch.manual_seed(1234)
 
 
 def load_data(path: Path, encoding: str = "utf-8") -> tuple[np.ndarray, np.ndarray]:

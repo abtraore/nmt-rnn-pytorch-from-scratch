@@ -17,8 +17,8 @@ class Encoder(nn.Module):
         output, _ = self.biLSTM(x)
 
         # Sum the features (hidden states) of the biLSTM.
-        fwd_out = output[:, :, :256]
-        bwd_out = output[:, :, 256:]
+        fwd_out = output[:, :, : self.units]
+        bwd_out = output[:, :, self.units :]
 
         output = fwd_out + bwd_out
 
@@ -49,7 +49,7 @@ class Decoder(nn.Module):
 
         self.embedding = nn.Embedding(vocab_size, units, padding_idx=0)
         self.preLSTM = nn.LSTM(units, units, batch_first=True)
-        self.cross_attention = CrossAttention()
+        self.cross_attention = CrossAttention(units=self.units)
         self.postLSTM = nn.LSTM(units, units, batch_first=True)
         self.linear = nn.Linear(units, vocab_size)
         self.logSoftmax = nn.LogSoftmax(dim=-1)

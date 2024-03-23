@@ -1,11 +1,11 @@
-from tqdm import tqdm
-
 import torch
+
+from tqdm import tqdm
 
 from .metrics import mask_loss, mask_acc
 
 
-def loops(model, epochs, train_loader, val_loader, optimizer, device):
+def loops(model, epochs, train_loader, val_loader, optimizer, scheduler, device):
 
     model = model.to(device)
 
@@ -61,9 +61,11 @@ def loops(model, epochs, train_loader, val_loader, optimizer, device):
         val_total_loss = val_total_loss / len(val_loader)
         val_total_acc = val_total_acc / len(val_loader)
 
+        scheduler.step(val_total_loss)
+
         print(
-            f"Epoch: {epoch+1} | Train Loss: {train_total_loss:.4} | Train Acc: {train_total_acc:.4}"
+            f" Epoch: {epoch+1} | Train Loss: {train_total_loss:.4} | Train Acc: {train_total_acc:.4}"
         )
         print(
-            f"Epoch: {epoch+1} | Val Loss: {val_total_loss:.4} | Val Acc: {val_total_acc:.4}\n"
+            f" Epoch: {epoch+1} | Val Loss: {val_total_loss:.4} | Val Acc: {val_total_acc:.4}\n"
         )
